@@ -143,6 +143,9 @@ class TestConsumer(unittest.TestCase):
             MessageBody=widget_data)
         response = self.consumer.get_requests()
         self.assertEqual(response, widget_data)
+    def test_sqs_is_empty:
+        response = self.consumer.get_requeusts()
+        self.assertEqual(response, None)
         
 if __name__ == '__main__':
     unittest.main()
