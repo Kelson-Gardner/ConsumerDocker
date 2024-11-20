@@ -142,12 +142,46 @@ class TestConsumer(unittest.TestCase):
             QueueUrl=self.sqs_input,
             MessageBody=widget_data)
         response = self.consumer.get_requests()
-        self.assertEqual(response, widget_data)
-    def test_sqs_is_empty:
-        response = self.consumer.get_requeusts()
+        self.assertEqual(dict(response)['type'], 'create')
+
+    def test_sqs_is_empty(self):
+        response = self.consumer.get_requests()
         self.assertEqual(response, None)
         
+    def test_delete_s3_request(self):
+        widget_data = {
+            'type': 'delete',
+            'requestId': '6f6121c7-14d6-4d0a-a431-9f1a6dde8808',
+            'widgetId': '7f0bfd22-876f-42f2-937d-cdf048caec2a',
+            'owner': 'Mary Matthews',
+            'label': 'ET',
+            'description': 'DYNJLGBLSLEZLEJECEVLLXUMNPSJAEYVNECKBQFIHPAOMCSVRHZINZWXDXQFOTXDVCAGSAYK',
+            'otherAttributes': [
+                {'name': 'color', 'value': 'blue'},
+                {'name': 'size', 'value': '143'},
+                {'name': 'size-unit', 'value': 'cm'},
+                {'name': 'height', 'value': '379'},
+                {'name': 'width-unit', 'value': 'cm'},
+                {'name': 'length-unit', 'value': 'cm'},
+                {'name': 'price', 'value': '31.84'},
+                {'name': 'quantity', 'value': '650'},
+                {'name': 'note', 'value': 'EFCQGMBMWWRVXGQUZXUFWSSOUSXZSFEDMGEQISTGTKRAOFAFFSZVJWTLJYPMZWGRSULXEZDSHOXQEMBQPGXBCWSJABNPNEDMTPFJZMXLBOHOJCHLBVGTUDBEJDMOWNQHTTIYHMVPYWSUXYUBPTY'}
+            ]
+        }
+        widget_data_bytes = json.dumps(widget_data).encode('utf-8')
+        self.consumer.s3.put_object(Bucket=self.consumer.bucket_input, Key="hello", Body=widget_data_bytes)
+
+        widget_request = self.consumer.get_requests()
+        self.consumer.create_request(widget_data)
+
+        s3_key = f"widgets/{'Mary Matthews'.replace(' ', '-').lower()}/7f0bfd22-876f-42f2-937d-cdf048caec2a"
+        
+        self.consumer.delete_request(widget_request)
+        try:
+            object = self.consumer.s3.get_object(Bucket=self.bucket_output, Key=s3_key)
+            self.assertEqual(0, 1)
+        except:
+            self.assertEqual(1, 1)
+
 if __name__ == '__main__':
     unittest.main()
-
-
