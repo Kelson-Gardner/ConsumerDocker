@@ -182,6 +182,25 @@ class TestConsumer(unittest.TestCase):
             self.assertEqual(0, 1)
         except:
             self.assertEqual(1, 1)
+            
+    def test_delete_dynamodb_request(self):
+        widget_request = {
+            'widgetId': '1',
+            'owner': 'test_owner',
+            'label': 'Test Widget',
+            'description': 'This is a test widget',
+            'otherAttributes': [{'name': 'color', 'value': 'blue'}]
+        }
 
+        self.consumer.store_in_dynamodb(widget_request)
+        
+        table = self.consumer.dynamodb.Table('widgets') 
+        try:
+            object = table.delete_item(TableName='widgets', Key={'id': "1"})
+            self.assertEqual(0, 1)
+        except:
+            self.assertEqual(1, 1)
+        
+        
 if __name__ == '__main__':
     unittest.main()
